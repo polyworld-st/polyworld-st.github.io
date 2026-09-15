@@ -97,6 +97,64 @@ button,a{font:inherit}
 
 
 
+
+<script id="click-tracking">
+(function () {
+  var CTA_URL = "https://polyworld.st/";
+  var STORAGE_KEY = "polyworld_clickid";
+  var cta = document.getElementById("cta");
+
+  function validClickId(value) {
+    if (!value) return false;
+    value = String(value).trim();
+    if (!value || value === "${SUBID}" || value.indexOf("${") === 0) return false;
+    return true;
+  }
+
+  function getClickId() {
+    var params = new URLSearchParams(window.location.search);
+    var id = params.get("clickid") || params.get("subid");
+    if (validClickId(id)) return id;
+
+    try {
+      id = sessionStorage.getItem(STORAGE_KEY);
+      if (validClickId(id)) return id;
+    } catch (e) {}
+
+    try {
+      id = localStorage.getItem(STORAGE_KEY);
+      if (validClickId(id)) return id;
+    } catch (e) {}
+
+    return "";
+  }
+
+  function saveClickId(id) {
+    if (!validClickId(id)) return;
+    try { sessionStorage.setItem(STORAGE_KEY, id); } catch (e) {}
+    try { localStorage.setItem(STORAGE_KEY, id); } catch (e) {}
+  }
+
+  function buildCtaUrl() {
+    var id = getClickId();
+    var url = new URL(CTA_URL);
+    if (id) url.searchParams.set("clickid", id);
+    return url.toString();
+  }
+
+  var params = new URLSearchParams(window.location.search);
+  var incoming = params.get("clickid") || params.get("subid");
+  if (validClickId(incoming)) saveClickId(incoming);
+
+  if (cta) {
+    cta.href = buildCtaUrl();
+    cta.addEventListener("click", function () {
+      cta.href = buildCtaUrl();
+    }, {passive:true});
+  }
+})();
+</script>
+
 <script id="promo-copy-final">
 (function () {
   var CODE = "BOOST2026";
